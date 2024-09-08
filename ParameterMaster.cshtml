@@ -1,0 +1,197 @@
+﻿@model CLMS_PROJECT.Models.ParameterMaster
+
+@{
+    ViewData["Title"] = "ParameterMaster";
+}
+
+
+
+
+<h1>ParameterMaster</h1>
+
+<hr />
+
+<div class="row">
+    <div class="col-sm-12">
+        <div class="card card-table comman-shadow">
+            <div class="card-body">
+
+                <!--FILTER-->
+                <div class="student-group-form">
+                    <form method="get" action="@Url.Action("ParameterMaster")">
+                        <div class="row">
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <input type="text" name="pcode" class="form-control" value="@ViewBag.SearchPcode" placeholder="Search by pcode ..." />
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <input type="text" name="parameterName" class="form-control" value="@ViewBag.SearchParameterName" placeholder="Search by ParameterName ..." />
+                                </div>
+                            </div>
+                            <div class="col-lg-4 col-md-6">
+                                <div class="form-group">
+                                    <input type="date" name="createdOn" class="form-control" value="@ViewBag.SearchCreatedOn" placeholder="Search by Date ..." />
+                                </div>
+                            </div>
+                            <div class="col-lg-2">
+                                <div class="search-student-btn">
+                                    <button type="submit" class="btn btn-primary">Search</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+
+                <table class="table border-0 star-student
+                                        table-hover table-center mb-0
+                                        table-striped"  >
+                    <thead class="student-thread">
+
+                        <tr>
+
+                            <th>ID</th>
+                       
+                            <th>pcode</th>
+                            <th>ParameterName</th>
+                            <th>Description</th>
+                            <th>Date</th>
+                        </tr>
+
+
+                    </thead>
+
+                    <tbody>
+
+                    @foreach (var item in ViewBag.pList)
+                    {
+                        <tr>
+                            <td>
+                                <a href="@Url.Action("ParameterMaster", new { id = item.Id })" class="table-avatar OpenFilledForm" data-id="@item.Id">
+                                    @item.Id
+                                </a>
+                            </td>
+                            <td>@item.ParameterCode</td>
+                            <td>@item.ParameterName</td>
+                            <td>@item.ParameterDesc</td>
+                                <td>@item.CreatedOn.ToString("dd/MM/yyyy")</td>
+                        </tr>
+                    }
+
+                        <!-- Pagination Controls -->
+                        <ul class="pagination">
+                            @for (var i = 1; i <= ViewBag.TotalPages; i++)
+                            {
+                                <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                                    <a class="page-link" href="@Url.Action("ParameterMaster", new { page = i, pcode = ViewBag.SearchPcode, parameterName = ViewBag.SearchParameterName, createdOn = ViewBag.SearchCreatedOn })">@i</a>
+                                </li>
+                            }
+                        </ul>
+
+               
+                        </tbody>
+                </table>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<button id="showFormButton" class="btn btn-primary">New</button>
+
+
+
+
+
+<div id="formContainer" style="display:none;">
+
+
+
+    <div class="row">
+        <div class="col-sm-7">
+            <div class="card card-table comman-shadow">
+                <div class="card-body">
+
+
+                    <form id="parameterForm" asp-action="ParameterMaster" method="post">
+                        <div class="form-group">
+                            <input type="hidden" name="Id" id="id" />
+                            <input type="hidden" name="CreatedOn" id="created" />
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="ParameterCode" class="control-label"></label>
+                            <input asp-for="ParameterCode" class="form-control" id="pcode" />
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="ParameterName" class="control-label"></label>
+                            <input asp-for="ParameterName" id="pname" class="form-control" />
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="ParameterDesc" class="control-label"></label>
+                            <input asp-for="ParameterDesc" id="pdesc" class="form-control" />
+                        </div>
+                        <div class="form-group">
+                            <input type="submit" value="Submit" class="btn btn-primary" />
+                        </div>
+                    </form>
+
+                    <form id="deleteForm" method="POST" asp-action="ParameterMasterDelete">
+                        <input type="hidden" name="Id" id="deleteId" />
+                        <input type="submit" value="Delete" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this record?');" />
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+    $(document).ready(function () {
+        // Show form for new entry
+        $('#showFormButton').click(function () {
+            $('#formContainer').show();
+            $('#parameterForm')[0].reset(); // Clear all form fields
+            $('#id').val(''); // Clear hidden ID
+            $('#created').val(''); // Clear hidden CreatedOn
+        });
+
+        // Open filled form for editing
+        $('.OpenFilledForm').click(function (e) {
+            e.preventDefault();
+            var id = $(this).data("id");
+
+            $.ajax({
+                url: '/Master/ParameterMaster',
+                type: 'GET',
+                data: { id: id },
+                success: function (response) {
+                    // Populate form fields with the response
+                    $('#id').val(response.id); // Set the ID
+                    $('#pcode').val(response.parameterCode);
+                    $('#pname').val(response.parameterName);
+                    $('#pdesc').val(response.parameterDesc);
+                    $('#created').val(response.createdon); // Set CreatedOn
+
+                    // Show the form
+                    $('#formContainer').show();
+                    $('#deleteId').val(response.id); // Set delete ID
+                },
+                error: function () {
+                    alert("An error occurred while loading the form data.");
+                }
+            });
+        });
+    });
+
+</script>
+
