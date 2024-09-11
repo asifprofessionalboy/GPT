@@ -123,10 +123,7 @@
                             <input type="hidden" name="Id" id="id" />
                             <input type="hidden" name="CreatedOn" id="created" />
                         </div>
-                        <div class="form-group">
-                            <label asp-for="ParameterCode" class="control-label"></label>
-                            <input asp-for="ParameterCode" class="form-control" id="pcode" />
-                        </div>
+                     
                         <div class="form-group">
                             <label asp-for="ParameterName" class="control-label"></label>
                             <input asp-for="ParameterName" id="pname" class="form-control" />
@@ -136,14 +133,16 @@
                             <input asp-for="ParameterDesc" id="pdesc" class="form-control" />
                         </div>
                         <div class="form-group">
-                            <input type="submit" value="Submit" class="btn btn-primary" />
+                            <input type="submit" value="Submit" name="Action" class="btn btn-primary" />
+
+                            <input type="submit" value="Delete" name="Action" class="btn btn-danger" onclick="return confirmDelete();" />
                         </div>
                     </form>
 
-                    <form id="deleteForm" method="POST" asp-action="ParameterMasterDelete">
+                @*     <form id="deleteForm" method="POST" asp-action="ParameterMasterDelete">
                         <input type="hidden" name="Id" id="deleteId" />
                         <input type="submit" value="Delete" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this record?');" />
-                    </form>
+                    </form> *@
 
                 </div>
             </div>
@@ -195,3 +194,8 @@
 
 </script>
 
+<script>
+    function confirmDelete() {
+        return confirm("Are you sure you want to delete this record?");
+    }
+</script>

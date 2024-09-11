@@ -39,10 +39,19 @@ namespace CLMS_PROJECT.Controllers
             }
 
             // Pagination logic
-            var pagedData = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
-            var totalCount = await query.CountAsync();
+            var qry = await mcontext.ParameterMasters.ToListAsync(); // Retrieve all data
+
+            // Sorting in memory by extracting the numeric part of ParameterCode
+            var sortedData = qry.OrderBy(p =>
+                int.Parse(p.ParameterCode.Substring(6)) // Extract numeric part from 'pcode_1', 'pcode_2', etc.
+            ).ToList();
+
+            // Apply pagination on the sorted data
+            var pagedData = sortedData.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+            var totalCount = sortedData.Count();
 
             ViewBag.pList = pagedData;
+
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
 
@@ -74,51 +83,64 @@ namespace CLMS_PROJECT.Controllers
             return View(new ParameterMaster());
         }
 
-
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ParameterMaster(ParameterMaster parameter)
+        public async Task<IActionResult> ParameterMaster(ParameterMaster parameter, string Action)
         {
-         
-                if (parameter.Id != Guid.Empty) // Editing an existing record
+            if (Action == "Submit")
+            {
+                var existingParameter = await mcontext.ParameterMasters.FindAsync(parameter.Id);
+
+                if (existingParameter != null)
                 {
-                    var existingParameter = await mcontext.ParameterMasters.FindAsync(parameter.Id);
-                    if (existingParameter != null)
-                    {
-                        existingParameter.ParameterCode = parameter.ParameterCode;
-                        existingParameter.ParameterName = parameter.ParameterName;
-                        existingParameter.ParameterDesc = parameter.ParameterDesc;
-                        // Preserve CreatedOn value
-                    }
+                    // Update existing record
+                    existingParameter.ParameterCode = parameter.ParameterCode;
+                    existingParameter.ParameterName = parameter.ParameterName;
+                    existingParameter.ParameterDesc = parameter.ParameterDesc;
+                    // Preserve CreatedOn value
                 }
-                else // Adding a new record
+                else
                 {
+                    // Adding a new record
                     parameter.CreatedOn = DateTime.Now; // Set CreatedOn when adding
                     await mcontext.ParameterMasters.AddAsync(parameter);
                 }
-
-                await mcontext.SaveChangesAsync();
-            
-
-            return RedirectToAction("ParameterMaster");
-        }
-
-        // POST: Delete the record
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ParameterMasterDelete(Guid id)
-        {
-            var para = await mcontext.ParameterMasters.FindAsync(id);
-            if (para == null)
+            }
+            else if (Action == "Delete")
             {
-                return NotFound();
+                var parameterToDelete = await mcontext.ParameterMasters.FindAsync(parameter.Id);
+                if (parameterToDelete != null)
+                {
+                    mcontext.ParameterMasters.Remove(parameterToDelete); // Remove the tracked entity
+                }
+                else
+                {
+                    // Handle the case where the entity does not exist
+                }
             }
 
-            mcontext.ParameterMasters.Remove(para);
             await mcontext.SaveChangesAsync();
 
             return RedirectToAction("ParameterMaster");
         }
+
+
+        // POST: Delete the record
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> ParameterMasterDelete(Guid id)
+        //{
+        //    var para = await mcontext.ParameterMasters.FindAsync(id);
+        //    if (para == null)
+        //    {
+        //        return NotFound();
+        //    }
+
+        //    mcontext.ParameterMasters.Remove(para);
+        //    await mcontext.SaveChangesAsync();
+
+        //    return RedirectToAction("ParameterMaster");
+        //}
 
 
 
